@@ -85,122 +85,115 @@ with st.sidebar:
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
 
-# Definir colores según el modo
+# --- DEFINICIÓN DE COLORES ESTILO APPLE ---
 if st.session_state.dark_mode:
-    # --- COLORES MODO OSCURO ---
-    bg_color = "#0E1117"
-    card_bg = "#262730"
-    text_color = "#FAFAFA"
-    input_bg = "#262730"
-    input_border = "#4B5563"
-    input_text = "#FAFAFA"
-    tab_active_color = "#FF4B4B" 
-    tab_text_color = "#FAFAFA"
+    # MODO OSCURO (Dark iOS)
+    bg_color = "#000000"         # Fondo negro puro
+    card_bg = "#1C1C1E"          # Gris oscuro Apple para tarjetas
+    text_color = "#F5F5F7"       # Blanco hueso
+    input_bg = "#2C2C2E"         # Gris input
+    input_border = "transparent" # Sin bordes en dark mode, solo fondo
+    input_text = "#FFFFFF"
+    highlight_color = "#0A84FF"  # Azul iOS Dark
+    shadow_style = "none"        # En dark mode no suele haber sombras, solo contraste
 else:
-    # --- COLORES MODO CLARO ---
-    bg_color = "#FFFFFF"
-    card_bg = "#F0F2F6" 
-    text_color = "#31333F"
-    input_bg = "#FFFFFF"
-    input_border = "#D1D5DB"
-    input_text = "#31333F"
-    tab_active_color = "#FF4B4B"
-    tab_text_color = "#31333F"
+    # MODO CLARO (Light iOS)
+    bg_color = "#F5F5F7"         # Gris muy suave Apple (Sistema)
+    card_bg = "#FFFFFF"          # Blanco puro tarjetas
+    text_color = "#1D1D1F"       # Casi negro
+    input_bg = "#FFFFFF"         # Blanco inputs
+    input_border = "#D1D1D6"     # Gris borde suave
+    input_text = "#000000"       # Negro puro para texto input (CORRECCIÓN IMPORTANTE)
+    highlight_color = "#007AFF"  # Azul iOS Light
+    shadow_style = "0 4px 12px rgba(0, 0, 0, 0.08)" # Sombra suave difusa
 
-# --- CSS MEJORADO (Tema + Pestañas Grandes) ---
+# --- CSS ESTILO APPLE & CORRECCIONES ---
 st.markdown(f"""
     <style>
+    /* Importar fuente Inter/System */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
     /* Fondo Principal */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }}
     
-    /* Tarjetas Métricas */
-    .metric-card {{
-        background-color: {card_bg};
-        border: 1px solid {input_border};
-        color: {text_color};
-        border-radius: 12px;
-        padding: 24px;
-        text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* Tarjetas Métricas & Contenedores (Apple Cards) */
+    .metric-card, div[data-testid="stExpander"] {{
+        background-color: {card_bg} !important;
+        border-radius: 18px !important; /* Bordes muy redondeados */
+        padding: 20px;
+        box-shadow: {shadow_style};
+        border: 1px solid {input_border if not st.session_state.dark_mode else 'transparent'};
+        color: {text_color} !important;
     }}
     
-    /* Datos Privados */
-    .private-data {{
-        background-color: {card_bg};
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 4px solid #64748B;
-        font-size: 0.85em;
-        color: {text_color};
-        margin-bottom: 15px;
-        border: 1px solid {input_border};
-    }}
-
-    /* FORZAR TODOS LOS INPUTS (Cajas de texto, números, selects) */
+    /* Inputs Estilo iOS */
+    /* Forzamos background y color de texto para evitar el error del "negro sobre negro" */
     div[data-baseweb="input"], div[data-baseweb="base-input"], div[data-baseweb="select"] {{
         background-color: {input_bg} !important;
-        border-color: {input_border} !important;
+        border: 1px solid {input_border} !important;
+        border-radius: 12px !important; /* Redondeado suave */
         color: {input_text} !important;
-        border-radius: 8px !important;
     }}
     
-    /* El texto dentro de los inputs */
-    input, textarea, select {{
+    /* Corrección CRÍTICA: Texto dentro de los inputs */
+    input, textarea, select, div[data-baseweb="select"] div {{
         color: {input_text} !important;
-        background-color: {input_bg} !important;
+        background-color: transparent !important; /* El fondo lo da el contenedor padre */
+        font-size: 16px !important; /* Evita zoom en iPhone */
     }}
     
-    /* Textos de etiquetas y títulos */
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {{
+    /* Etiquetas y Textos */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {{
         color: {text_color} !important;
+        font-weight: 500;
     }}
     
-    /* Expanders */
-    div[data-testid="stExpander"] {{
-        background-color: {card_bg} !important;
-        color: {text_color} !important;
-        border: 1px solid {input_border};
-    }}
-    div[data-testid="stExpander"] p {{
-        color: {text_color} !important;
-    }}
-    
-    /* Botones */
+    /* Botones (Estilo Cápsula) */
     .stButton button {{
-        border-radius: 8px;
+        border-radius: 99px !important; /* Botón cápsula */
         font-weight: 600;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        padding: 0.5rem 1.5rem;
     }}
-
-    /* --- PESTAÑAS (TABS) GRANDES --- */
+    
+    /* Pestañas (Tabs) Grandes - Estilo Segmented Control */
     button[data-baseweb="tab"] {{
         background-color: transparent !important;
-        color: {tab_text_color} !important;
-        border-radius: 5px;
-        margin-right: 5px;
-    }}
-
-    /* Solo aplicar tamaño gigante en pantallas de computadora (ancho > 1024px) */
-    @media (min-width: 1024px) {{
-        button[data-baseweb="tab"] {{
-            font-size: 22px !important;
-            padding: 15px 30px !important;
-            font-weight: bold !important;
-            min-width: 180px; 
-        }}
-        div[data-baseweb="tab-list"] {{
-            gap: 10px;
-        }}
+        color: {text_color} !important;
+        border-radius: 8px;
+        font-weight: 600;
+        margin: 0 5px;
+        border-bottom: 2px solid transparent;
     }}
     
-    /* Color de la pestaña activa */
-    button[data-baseweb="tab"][aria-selected="true"] {{
-        color: {tab_active_color} !important;
-        border-bottom-color: {tab_active_color} !important;
-        background-color: {card_bg} !important;
+    /* Pestañas en Desktop (Grandes) */
+    @media (min-width: 1024px) {{
+        button[data-baseweb="tab"] {{
+            font-size: 20px !important;
+            padding: 12px 30px !important;
+            min-width: 150px;
+        }}
+        div[data-baseweb="tab-list"] {{
+            gap: 15px;
+            margin-bottom: 20px;
+        }}
     }}
+
+    /* Pestaña Activa */
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        color: {highlight_color} !important;
+        border-bottom-color: {highlight_color} !important;
+        background-color: {card_bg} !important;
+        box-shadow: {shadow_style};
+    }}
+    
+    /* Eliminar borde superior por defecto de Streamlit */
+    header {{visibility: hidden;}}
     </style>
 """, unsafe_allow_html=True)
 
@@ -473,7 +466,7 @@ with tab1:
                 st.session_state.email = st.text_input("Correo", value=st.session_state.email, placeholder="cliente@email.com")
             with pc3:
                 # number_input activa teclado numérico en móvil
-                st.session_state.edad = st.number_input("Edad", min_value=1, max_value=120, value=st.session_state.edad)
+                st.session_state.edad = st.number_input("Edad", min_value=1, max_value=120, value=st.session_state.edad, step=1)
             with pc4:
                 st.session_state.sexo = st.selectbox("Sexo", ["Masculino", "Femenino", "No especificar"], index=["Masculino", "Femenino", "No especificar"].index(st.session_state.sexo))
 
@@ -482,9 +475,9 @@ with tab1:
         balance_color = "#4F46E5" if balance >= 0 else "#F43F5E"
         
         st.markdown(f"""
-        <div style="margin-top:10px; padding:10px; background-color:{card_bg}; border-radius:10px; border:1px solid {input_border}; text-align:right;">
-            <span style='color:{text_color}; font-size:0.8em; text-transform:uppercase; font-weight:bold;'>Balance Actual</span><br>
-            <span style='color:{balance_color}; font-weight:bold; font-size:1.5em;'>{format_money(balance)}</span>
+        <div style="margin-top:10px; padding:15px; background-color:{card_bg}; border-radius:18px; border:1px solid {input_border if not st.session_state.dark_mode else 'transparent'}; text-align:right; box-shadow:{shadow_style};">
+            <span style='color:{text_color}; font-size:0.8em; text-transform:uppercase; font-weight:600;'>Balance Actual</span><br>
+            <span style='color:{balance_color}; font-weight:bold; font-size:2em;'>{format_money(balance)}</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -546,7 +539,7 @@ with tab1:
                 color_border = "#10B981" if t['tipo'] == "Ingreso" else "#F43F5E"
                 
                 if st.session_state.dark_mode:
-                    bg = "#064e3b" if t['tipo'] == "Ingreso" else "#7f1d1d"
+                    bg = "#112a23" if t['tipo'] == "Ingreso" else "#3f141a"
                 else:
                     bg = "#F0FDF4" if t['tipo'] == "Ingreso" else "#FFF1F2"
                 
@@ -554,8 +547,8 @@ with tab1:
                     col_txt, col_act = st.columns([3, 1])
                     with col_txt:
                         st.markdown(f"""
-                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:8px; border-radius:4px; margin-bottom:4px; color:{text_color};">
-                            <span style="font-weight:600;">{t['concepto']}</span><br>
+                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:12px; border-radius:12px; margin-bottom:8px; color:{text_color};">
+                            <span style="font-weight:600; font-size:1.1em;">{t['concepto']}</span><br>
                             <span style="color:{color_border}; font-weight:bold;">{format_money(t['monto'])}</span>
                         </div>
                         """, unsafe_allow_html=True)
@@ -648,7 +641,7 @@ with tab3:
     if st.session_state.deudas:
         st.write("")
         for d in st.session_state.deudas:
-            st.markdown(f"""<div style="background:{card_bg}; padding:12px; border-radius:8px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><div><div style="font-weight:bold;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="background:{card_bg}; padding:12px; border-radius:12px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><div><div style="font-weight:bold;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
             if st.button("Eliminar", key=f"dd_{d['id']}"):
                 st.session_state.deudas = [x for x in st.session_state.deudas if x['id'] != d['id']]
                 st.rerun()
@@ -666,7 +659,7 @@ with tab4:
         ahorro_val = ahorro_mes if ahorro_mes is not None else 0.0
         total_proy = ahorro_val * meses_input
         
-        st.markdown(f"""<div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); padding:20px; border-radius:15px; color:white; text-align:center; margin-top:20px;"><div style="font-size:0.8rem; opacity:0.8;">CAPITAL ACUMULADO</div><div style="font-size:2rem; font-weight:bold;">{format_money(total_proy)}</div><div style="font-size:0.8rem;">en {format_years(meses_input)}</div></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); padding:20px; border-radius:18px; color:white; text-align:center; margin-top:20px; box-shadow:{shadow_style};"><div style="font-size:0.8rem; opacity:0.8;">CAPITAL ACUMULADO</div><div style="font-size:2rem; font-weight:bold;">{format_money(total_proy)}</div><div style="font-size:0.8rem;">en {format_years(meses_input)}</div></div>""", unsafe_allow_html=True)
         st.write("")
         pdf_proj = create_pro_pdf("proyeccion", {"ahorro": ahorro_val, "meses": meses_input, "total": total_proy})
         st.download_button("⬇️ PDF Proyección", pdf_proj, "Proyeccion_Ahorro.pdf", "application/pdf", use_container_width=True)
@@ -674,8 +667,9 @@ with tab4:
         if ahorro_val > 0:
             data_p = [{"Mes": m, "Total": ahorro_val * m} for m in range(1, meses_input + 1)]
             df_p = pd.DataFrame(data_p)
+            
             # --- MODIFICADO: COLOR MORADO ---
-            fig_p = px.area(df_p, x="Mes", y="Total", title="Crecimiento del Capital", color_discrete_sequence=['#7C3AED'])
+            fig_p = px.area(df_p, x="Mes", y="Total", title="Crecimiento del Capital", color_discrete_sequence=['#8B5CF6'])
             
             chart_text_color = "white" if st.session_state.dark_mode else "black"
             fig_p.update_layout(
@@ -700,7 +694,8 @@ with tab5:
              with col_db1:
                  mes_cierre = st.selectbox("Mes de Corte", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=datetime.now().month - 1)
              with col_db2:
-                 anio_cierre = st.number_input("Año", min_value=2020, max_value=2030, value=datetime.now().year)
+                 # number_input activa teclado numérico en móvil
+                 anio_cierre = st.number_input("Año", min_value=2020, max_value=2030, value=datetime.now().year, step=1)
              with col_db3:
                  st.write("")
                  st.write("")
@@ -784,7 +779,7 @@ with tab5:
                         c_e3, c_e4, c_e5 = st.columns(3)
                         new_email = c_e3.text_input("Email", value=ultimo_reg.get('Email', ''))
                         # number_input activa teclado numérico en móvil
-                        new_edad = c_e4.number_input("Edad", min_value=1, max_value=120, value=int(ultimo_reg.get('Edad', 18)))
+                        new_edad = c_e4.number_input("Edad", min_value=1, max_value=120, value=int(ultimo_reg.get('Edad', 18)), step=1)
                         
                         idx_sexo = 0
                         opciones_sexo = ["Masculino", "Femenino", "No especificar"]
@@ -810,7 +805,7 @@ with tab5:
                 for idx, row in registros_cliente.iterrows():
                     col_info, col_dl = st.columns([4, 1])
                     with col_info:
-                        st.markdown(f"""<div style="background-color:{card_bg}; padding:10px; border-radius:5px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background-color:{card_bg}; padding:10px; border-radius:12px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
                     with col_dl:
                         st.download_button("📄 PDF", row['PDF_Bytes'], f"Reporte_{row['Cliente']}_{row['Periodo']}.pdf", "application/pdf", key=f"btn_dl_{row['id']}")
                     st.write("")
