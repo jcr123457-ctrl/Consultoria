@@ -74,77 +74,133 @@ if 'sexo' not in st.session_state:
 if 'editando_id' not in st.session_state:
     st.session_state.editando_id = None
 
-# --- CSS FORZADO A MODO CLARO ---
-# Este bloque obliga a la app a verse blanca/clara incluso si el sistema está en oscuro
-st.markdown("""
+# --- CONTROL DE TEMA (CLARO / OSCURO) ---
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Sidebar para cambiar tema
+with st.sidebar:
+    st.title("Configuración")
+    if st.button("🌓 Cambiar Tema"):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
+
+# Definir colores según el modo
+if st.session_state.dark_mode:
+    # --- COLORES MODO OSCURO ---
+    bg_color = "#0E1117"
+    card_bg = "#262730"
+    text_color = "#FAFAFA"
+    input_bg = "#262730"
+    input_border = "#4B5563"
+    input_text = "#FAFAFA"
+    tab_active_color = "#FF4B4B" 
+    tab_text_color = "#FAFAFA"
+else:
+    # --- COLORES MODO CLARO ---
+    bg_color = "#FFFFFF"
+    card_bg = "#F0F2F6" 
+    text_color = "#31333F"
+    input_bg = "#FFFFFF"
+    input_border = "#D1D5DB"
+    input_text = "#31333F"
+    tab_active_color = "#FF4B4B"
+    tab_text_color = "#31333F"
+
+# --- CSS MEJORADO (Tema + Pestañas Grandes) ---
+st.markdown(f"""
     <style>
-    /* Fondo General y Texto */
-    .stApp {
-        background-color: #F8FAFC;
-        color: #1E293B;
-    }
+    /* Fondo Principal */
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
     
     /* Tarjetas Métricas */
-    .metric-card {
-        background-color: white;
+    .metric-card {{
+        background-color: {card_bg};
+        border: 1px solid {input_border};
+        color: {text_color};
         border-radius: 12px;
         padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         text-align: center;
-        border: 1px solid #E2E8F0;
-    }
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }}
     
     /* Datos Privados */
-    .private-data {
-        background-color: #F1F5F9;
+    .private-data {{
+        background-color: {card_bg};
         padding: 10px;
         border-radius: 8px;
         border-left: 4px solid #64748B;
         font-size: 0.85em;
-        color: #475569;
+        color: {text_color};
         margin-bottom: 15px;
-    }
+        border: 1px solid {input_border};
+    }}
 
-    /* Forzar Inputs (Cajas de texto) a Blanco con Texto Oscuro */
-    .stTextInput > div > div, 
-    .stNumberInput > div > div, 
-    .stSelectbox > div > div {
-        background-color: #FFFFFF !important;
-        color: #333333 !important;
-        border: 1px solid #CBD5E1 !important;
-    }
+    /* FORZAR TODOS LOS INPUTS (Cajas de texto, números, selects) */
+    div[data-baseweb="input"], div[data-baseweb="base-input"], div[data-baseweb="select"] {{
+        background-color: {input_bg} !important;
+        border-color: {input_border} !important;
+        color: {input_text} !important;
+        border-radius: 8px !important;
+    }}
     
-    /* Textos dentro de inputs */
-    input {
-        color: #333333 !important;
-    }
+    /* El texto dentro de los inputs */
+    input, textarea, select {{
+        color: {input_text} !important;
+        background-color: {input_bg} !important;
+    }}
     
-    /* Etiquetas y Textos varios */
-    label, p, span, div.stMarkdown {
-        color: #333333 !important;
-    }
-    
-    /* Botones */
-    .stButton button {
-        border-radius: 8px;
-        font-weight: 600;
-        color: white !important; /* Texto del botón blanco */
-    }
-    
-    /* Excepciones para textos que queremos de color específico */
-    .text-emerald { color: #10B981 !important; }
-    .text-rose { color: #F43F5E !important; }
-    .text-indigo { color: #6366F1 !important; }
+    /* Textos de etiquetas y títulos */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {{
+        color: {text_color} !important;
+    }}
     
     /* Expanders */
-    div[data-testid="stExpander"] {
-        background-color: white !important;
-        color: #333333 !important;
-        border: 1px solid #E2E8F0;
-    }
-    div[data-testid="stExpander"] p {
-        color: #333333 !important;
-    }
+    div[data-testid="stExpander"] {{
+        background-color: {card_bg} !important;
+        color: {text_color} !important;
+        border: 1px solid {input_border};
+    }}
+    div[data-testid="stExpander"] p {{
+        color: {text_color} !important;
+    }}
+    
+    /* Botones */
+    .stButton button {{
+        border-radius: 8px;
+        font-weight: 600;
+    }}
+
+    /* --- PESTAÑAS (TABS) GRANDES --- */
+    button[data-baseweb="tab"] {{
+        background-color: transparent !important;
+        color: {tab_text_color} !important;
+        border-radius: 5px;
+        margin-right: 5px;
+    }}
+
+    /* Solo aplicar tamaño gigante en pantallas de computadora (ancho > 1024px) */
+    @media (min-width: 1024px) {{
+        button[data-baseweb="tab"] {{
+            font-size: 22px !important;
+            padding: 15px 30px !important;
+            font-weight: bold !important;
+            min-width: 180px; 
+        }}
+        div[data-baseweb="tab-list"] {{
+            gap: 10px;
+        }}
+    }}
+    
+    /* Color de la pestaña activa */
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        color: {tab_active_color} !important;
+        border-bottom-color: {tab_active_color} !important;
+        background-color: {card_bg} !important;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -416,18 +472,19 @@ with tab1:
             with pc2:
                 st.session_state.email = st.text_input("Correo", value=st.session_state.email, placeholder="cliente@email.com")
             with pc3:
+                # number_input activa teclado numérico en móvil
                 st.session_state.edad = st.number_input("Edad", min_value=1, max_value=120, value=st.session_state.edad)
             with pc4:
                 st.session_state.sexo = st.selectbox("Sexo", ["Masculino", "Femenino", "No especificar"], index=["Masculino", "Femenino", "No especificar"].index(st.session_state.sexo))
 
         ingresos, gastos, balance = get_balance()
-        color = "#4F46E5" if balance >= 0 else "#F43F5E"
         
-        # Usamos una clase personalizada para forzar el color del texto en la tarjeta de balance
+        balance_color = "#4F46E5" if balance >= 0 else "#F43F5E"
+        
         st.markdown(f"""
-        <div style="margin-top:10px; padding:10px; background-color:white; border-radius:10px; border:1px solid #e2e8f0; text-align:right;">
-            <span style='color:#64748B; font-size:0.8em; text-transform:uppercase; font-weight:bold;'>Balance Actual</span><br>
-            <span style='color:{color}; font-weight:bold; font-size:1.5em;'>{format_money(balance)}</span>
+        <div style="margin-top:10px; padding:10px; background-color:{card_bg}; border-radius:10px; border:1px solid {input_border}; text-align:right;">
+            <span style='color:{text_color}; font-size:0.8em; text-transform:uppercase; font-weight:bold;'>Balance Actual</span><br>
+            <span style='color:{balance_color}; font-weight:bold; font-size:1.5em;'>{format_money(balance)}</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -436,19 +493,16 @@ with tab1:
     col_left, col_right = st.columns([4, 3])
     
     with col_left:
-        # Formulario CON TECLA ENTER
         header_text = '✏️ Editar Movimiento' if st.session_state.editando_id else '✨ Nuevo Movimiento'
         st.markdown(f"**{header_text}**")
         
-        # Usamos st.form para permitir guardar con ENTER
         with st.form(key="registro_form", clear_on_submit=True):
             fc_tipo, fc_monto = st.columns([1, 1])
             with fc_tipo:
-                # Orden cambiado para que Gasto sea el defecto
                 tipos = ["Gasto", "Ingreso"]
                 tipo_sel = st.radio("Tipo", tipos, horizontal=True, label_visibility="collapsed")
             with fc_monto:
-                # Value=None para que empiece vacío
+                # number_input activa teclado numérico en móvil
                 monto = st.number_input("Monto", min_value=0.0, step=100.0, value=None, label_visibility="collapsed", placeholder="$0.00")
 
             concepto = st.text_input("Concepto", placeholder="Ej. Nómina, Renta...", label_visibility="collapsed")
@@ -490,15 +544,18 @@ with tab1:
         else:
             for t in reversed(st.session_state.transacciones):
                 color_border = "#10B981" if t['tipo'] == "Ingreso" else "#F43F5E"
-                # Forzamos fondos claros ya que estamos en modo claro forzado
-                bg = "#F0FDF4" if t['tipo'] == "Ingreso" else "#FFF1F2"
+                
+                if st.session_state.dark_mode:
+                    bg = "#064e3b" if t['tipo'] == "Ingreso" else "#7f1d1d"
+                else:
+                    bg = "#F0FDF4" if t['tipo'] == "Ingreso" else "#FFF1F2"
                 
                 with st.container():
                     col_txt, col_act = st.columns([3, 1])
                     with col_txt:
                         st.markdown(f"""
-                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:8px; border-radius:4px; margin-bottom:4px;">
-                            <span style="font-weight:600; color:#333;">{t['concepto']}</span><br>
+                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:8px; border-radius:4px; margin-bottom:4px; color:{text_color};">
+                            <span style="font-weight:600;">{t['concepto']}</span><br>
                             <span style="color:{color_border}; font-weight:bold;">{format_money(t['monto'])}</span>
                         </div>
                         """, unsafe_allow_html=True)
@@ -514,9 +571,25 @@ with tab1:
                          color=['Ingresos', 'Egresos'],
                          color_discrete_map={'Ingresos':'#10B981', 'Egresos':'#F43F5E'},
                          hole=0.6)
-            # Forzar colores claros en la gráfica
-            fig.update_layout(showlegend=False, margin=dict(t=0,b=0,l=0,r=0), height=250, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
-            fig.add_annotation(text=format_money(balance), x=0.5, y=0.5, font_size=16, showarrow=False, font_weight="bold", font=dict(color='black'))
+            
+            chart_text_color = "white" if st.session_state.dark_mode else "black"
+            
+            fig.update_layout(
+                showlegend=False, 
+                margin=dict(t=0,b=0,l=0,r=0), 
+                height=250, 
+                paper_bgcolor='rgba(0,0,0,0)', 
+                plot_bgcolor='rgba(0,0,0,0)', 
+                font=dict(color=chart_text_color)
+            )
+            fig.add_annotation(
+                text=format_money(balance), 
+                x=0.5, y=0.5, 
+                font_size=16, 
+                showarrow=False, 
+                font_weight="bold", 
+                font=dict(color=chart_text_color)
+            )
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         else:
             st.caption("Agrega datos para ver la gráfica.")
@@ -524,10 +597,11 @@ with tab1:
 # --- TAB 2: ANÁLISIS ---
 with tab2:
     ingresos, gastos, balance = get_balance()
+    
     col_k1, col_k2, col_k3 = st.columns(3)
-    col_k1.markdown(f"""<div class="metric-card" style="border-top: 5px solid #10B981;"><div style="color:#10B981; font-weight:bold;">INGRESOS</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(ingresos)}</div></div>""", unsafe_allow_html=True)
-    col_k2.markdown(f"""<div class="metric-card" style="border-top: 5px solid #F43F5E;"><div style="color:#F43F5E; font-weight:bold;">EGRESOS</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(gastos)}</div></div>""", unsafe_allow_html=True)
-    col_k3.markdown(f"""<div class="metric-card" style="border-top: 5px solid #6366F1;"><div style="color:#6366F1; font-weight:bold;">BALANCE</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(balance)}</div></div>""", unsafe_allow_html=True)
+    col_k1.markdown(f"""<div class="metric-card" style="border-top: 5px solid #10B981;"><div style="color:#10B981; font-weight:bold;">INGRESOS</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(ingresos)}</div></div>""", unsafe_allow_html=True)
+    col_k2.markdown(f"""<div class="metric-card" style="border-top: 5px solid #F43F5E;"><div style="color:#F43F5E; font-weight:bold;">EGRESOS</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(gastos)}</div></div>""", unsafe_allow_html=True)
+    col_k3.markdown(f"""<div class="metric-card" style="border-top: 5px solid #6366F1;"><div style="color:#6366F1; font-weight:bold;">BALANCE</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(balance)}</div></div>""", unsafe_allow_html=True)
     
     st.write("")
     if st.session_state.transacciones:
@@ -535,7 +609,13 @@ with tab2:
         with c_chart:
             st.subheader("Visualización")
             fig_analisis = px.pie(names=['Ingresos', 'Egresos'], values=[ingresos, gastos], color=['Ingresos', 'Egresos'], color_discrete_map={'Ingresos':'#10B981', 'Egresos':'#F43F5E'}, hole=0.5)
-            fig_analisis.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
+            
+            chart_text_color = "white" if st.session_state.dark_mode else "black"
+            fig_analisis.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', 
+                plot_bgcolor='rgba(0,0,0,0)', 
+                font=dict(color=chart_text_color)
+            )
             st.plotly_chart(fig_analisis, use_container_width=True)
         with c_details:
             st.subheader("Detalles")
@@ -557,6 +637,7 @@ with tab3:
     with st.container():
         dc1, dc2, dc3, dc4 = st.columns([3, 2, 2, 1])
         with dc1: n_acreedor = st.text_input("Acreedor", placeholder="Banco...", label_visibility="collapsed")
+        # number_input activa teclado numérico en móvil
         with dc2: n_monto = st.number_input("Monto Deuda", min_value=0.0, label_visibility="collapsed")
         with dc3: n_tasa = st.number_input("Interés %", min_value=0.0, label_visibility="collapsed")
         with dc4:
@@ -567,7 +648,7 @@ with tab3:
     if st.session_state.deudas:
         st.write("")
         for d in st.session_state.deudas:
-            st.markdown(f"""<div style="background:white; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:bold; color:#333;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="background:{card_bg}; padding:12px; border-radius:8px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><div><div style="font-weight:bold;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
             if st.button("Eliminar", key=f"dd_{d['id']}"):
                 st.session_state.deudas = [x for x in st.session_state.deudas if x['id'] != d['id']]
                 st.rerun()
@@ -577,11 +658,11 @@ with tab4:
     st.markdown("### 🧮 Calculadora de Ahorro")
     col_calc, col_graph = st.columns([1, 2])
     with col_calc:
+        # number_input activa teclado numérico en móvil
         ahorro_mes = st.number_input("Ahorro Mensual ($)", min_value=0.0, value=None, step=100.0, placeholder="0.00")
         meses_input = st.slider("Periodo (Meses)", 1, 60, 12)
         st.caption(f"📅 Equivalente a: **{format_years(meses_input)}**")
         
-        # Validación segura para el cálculo
         ahorro_val = ahorro_mes if ahorro_mes is not None else 0.0
         total_proy = ahorro_val * meses_input
         
@@ -593,15 +674,21 @@ with tab4:
         if ahorro_val > 0:
             data_p = [{"Mes": m, "Total": ahorro_val * m} for m in range(1, meses_input + 1)]
             df_p = pd.DataFrame(data_p)
-            fig_p = px.area(df_p, x="Mes", y="Total", title="Crecimiento del Capital")
-            fig_p.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
+            # --- MODIFICADO: COLOR MORADO ---
+            fig_p = px.area(df_p, x="Mes", y="Total", title="Crecimiento del Capital", color_discrete_sequence=['#7C3AED'])
+            
+            chart_text_color = "white" if st.session_state.dark_mode else "black"
+            fig_p.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', 
+                plot_bgcolor='rgba(0,0,0,0)', 
+                font=dict(color=chart_text_color)
+            )
             st.plotly_chart(fig_p, use_container_width=True)
 
 # --- TAB 5: BASE DE DATOS ---
 with tab5:
     st.header("🗄️ Historial y Clientes")
     
-    # 1. Guardar Estado Actual
     with st.container():
         st.markdown("#### 💾 Guardar y Limpiar (Nuevo Registro)")
         current_ing, current_gas, current_bal = get_balance()
@@ -619,7 +706,6 @@ with tab5:
                  st.write("")
                  if st.button("Guardar Historial", type="primary", use_container_width=True):
                      pdf_actual_bytes = create_pro_pdf("analisis")
-                     # Intentar guardar ahorro proyectado si fue calculado
                      ahorro_actual = ahorro_mes if 'ahorro_mes' in locals() and ahorro_mes else 0.0
                      
                      nuevo_registro = {
@@ -637,12 +723,11 @@ with tab5:
                          "Ingresos": current_ing,
                          "Egresos": current_gas,
                          "Balance": current_bal,
-                         "Ahorro_Proyectado": float(ahorro_actual), # Guardar ahorro también
+                         "Ahorro_Proyectado": float(ahorro_actual),
                          "PDF_Bytes": pdf_actual_bytes
                      }
                      st.session_state.historial_db.append(nuevo_registro)
                      
-                     # GUARDAR EN ARCHIVO
                      save_data(st.session_state.historial_db)
                      
                      st.success(f"✅ Historial guardado para {st.session_state.cliente}. Campos reiniciados.")
@@ -652,7 +737,6 @@ with tab5:
 
     st.markdown("---")
     
-    # BOTÓN EXCEL COMPLEJO
     if st.session_state.historial_db:
         excel_bytes = generate_complex_excel(st.session_state.historial_db)
             
@@ -666,7 +750,6 @@ with tab5:
     
     st.markdown("---")
     
-    # 2. Lista de Clientes
     st.subheader("👥 Clientes Registrados")
     if st.session_state.historial_db:
         df_full = pd.DataFrame(st.session_state.historial_db)
@@ -676,17 +759,13 @@ with tab5:
                 registros_cliente = df_full[df_full['Cliente'] == nombre_cliente]
                 ultimo_reg = registros_cliente.iloc[-1]
                 
-                # --- Sección de Datos Personales (Editable) ---
                 st.markdown("##### ✏️ Datos Personales")
                 
-                # Estado local para edición dentro del expander
-                # Usamos claves únicas para cada cliente para evitar conflictos
                 key_edit = f"edit_mode_{nombre_cliente}"
                 if key_edit not in st.session_state:
                     st.session_state[key_edit] = False
 
                 if not st.session_state[key_edit]:
-                    # Vista de Lectura
                     c_dato1, c_dato2, c_dato3, c_dato4 = st.columns(4)
                     c_dato1.markdown(f"**Ocupación:** {ultimo_reg.get('Ocupacion', 'N/A')}")
                     c_dato2.markdown(f"**Tel:** {ultimo_reg.get('Telefono', 'N/A')}")
@@ -697,7 +776,6 @@ with tab5:
                         st.session_state[key_edit] = True
                         st.rerun()
                 else:
-                    # Vista de Edición
                     with st.form(key=f"form_edit_{nombre_cliente}"):
                         c_e1, c_e2 = st.columns(2)
                         new_ocupacion = c_e1.text_input("Ocupación", value=ultimo_reg.get('Ocupacion', ''))
@@ -705,6 +783,7 @@ with tab5:
                         
                         c_e3, c_e4, c_e5 = st.columns(3)
                         new_email = c_e3.text_input("Email", value=ultimo_reg.get('Email', ''))
+                        # number_input activa teclado numérico en móvil
                         new_edad = c_e4.number_input("Edad", min_value=1, max_value=120, value=int(ultimo_reg.get('Edad', 18)))
                         
                         idx_sexo = 0
@@ -714,7 +793,6 @@ with tab5:
                         new_sexo = c_e5.selectbox("Sexo", opciones_sexo, index=idx_sexo)
 
                         if st.form_submit_button("💾 Guardar Cambios"):
-                            # Actualizar TODOS los registros de este cliente con la nueva info
                             for rec in st.session_state.historial_db:
                                 if rec['Cliente'] == nombre_cliente:
                                     rec['Ocupacion'] = new_ocupacion
@@ -732,7 +810,7 @@ with tab5:
                 for idx, row in registros_cliente.iterrows():
                     col_info, col_dl = st.columns([4, 1])
                     with col_info:
-                        st.markdown(f"""<div style="background-color:white; padding:10px; border-radius:5px; border:1px solid #eee;"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background-color:{card_bg}; padding:10px; border-radius:5px; border:1px solid {input_border}; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:{text_color};"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
                     with col_dl:
                         st.download_button("📄 PDF", row['PDF_Bytes'], f"Reporte_{row['Cliente']}_{row['Periodo']}.pdf", "application/pdf", key=f"btn_dl_{row['id']}")
                     st.write("")
