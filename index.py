@@ -74,73 +74,76 @@ if 'sexo' not in st.session_state:
 if 'editando_id' not in st.session_state:
     st.session_state.editando_id = None
 
-# Dark Mode State
-if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
-
-# --- Dark Mode CSS Injection ---
-if st.session_state.dark_mode:
-    st.markdown("""
-        <style>
-        .stApp {
-            background-color: #0E1117;
-            color: #FAFAFA;
-        }
-        .metric-card {
-            background-color: #262730;
-            border: 1px solid #3d3d3d;
-            color: white;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-        }
-        .private-data {
-            background-color: #262730;
-            color: #cbd5e1;
-            border-left: 4px solid #6366f1;
-        }
-        div[data-testid="stExpander"] {
-            background-color: #262730;
-            color: white;
-        }
-        input, select, textarea {
-            color: #333 !important; 
-        }
-        </style>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-        <style>
-        .stApp {
-            background-color: #F8FAFC;
-            color: #333;
-        }
-        .metric-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            border: 1px solid #E2E8F0;
-        }
-        .private-data {
-            background-color: #F1F5F9;
-            padding: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #64748B;
-            font-size: 0.85em;
-            color: #475569;
-            margin-bottom: 15px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-# CSS Común
+# --- CSS FORZADO A MODO CLARO ---
+# Este bloque obliga a la app a verse blanca/clara incluso si el sistema está en oscuro
 st.markdown("""
     <style>
+    /* Fondo General y Texto */
+    .stApp {
+        background-color: #F8FAFC;
+        color: #1E293B;
+    }
+    
+    /* Tarjetas Métricas */
+    .metric-card {
+        background-color: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 1px solid #E2E8F0;
+    }
+    
+    /* Datos Privados */
+    .private-data {
+        background-color: #F1F5F9;
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 4px solid #64748B;
+        font-size: 0.85em;
+        color: #475569;
+        margin-bottom: 15px;
+    }
+
+    /* Forzar Inputs (Cajas de texto) a Blanco con Texto Oscuro */
+    .stTextInput > div > div, 
+    .stNumberInput > div > div, 
+    .stSelectbox > div > div {
+        background-color: #FFFFFF !important;
+        color: #333333 !important;
+        border: 1px solid #CBD5E1 !important;
+    }
+    
+    /* Textos dentro de inputs */
+    input {
+        color: #333333 !important;
+    }
+    
+    /* Etiquetas y Textos varios */
+    label, p, span, div.stMarkdown {
+        color: #333333 !important;
+    }
+    
+    /* Botones */
     .stButton button {
         border-radius: 8px;
         font-weight: 600;
+        color: white !important; /* Texto del botón blanco */
+    }
+    
+    /* Excepciones para textos que queremos de color específico */
+    .text-emerald { color: #10B981 !important; }
+    .text-rose { color: #F43F5E !important; }
+    .text-indigo { color: #6366F1 !important; }
+    
+    /* Expanders */
+    div[data-testid="stExpander"] {
+        background-color: white !important;
+        color: #333333 !important;
+        border: 1px solid #E2E8F0;
+    }
+    div[data-testid="stExpander"] p {
+        color: #333333 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -188,35 +191,23 @@ def generate_complex_excel(data):
     df_all = pd.DataFrame(data)
     
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        # 1. Hoja Resumen General (Todos los clientes)
-        # Obtenemos el último registro de cada cliente para tener sus datos actuales
         if not df_all.empty:
-            # Agrupar por cliente y tomar el último registro ingresado
             df_unique_clients = df_all.sort_values('id').groupby('Cliente').last().reset_index()
-            
-            # Seleccionar columnas relevantes para el resumen
             cols_resumen = ['Cliente', 'Ocupacion', 'Telefono', 'Email', 'Edad', 'Sexo']
-            # Asegurarse que existan (por compatibilidad con datos viejos)
             cols_resumen = [c for c in cols_resumen if c in df_unique_clients.columns]
-            
             df_resumen = df_unique_clients[cols_resumen]
             df_resumen.to_excel(writer, sheet_name='Resumen Clientes', index=False)
             
-            # Ajustar anchos de columna (básico)
             worksheet = writer.sheets['Resumen Clientes']
             for idx, col in enumerate(df_resumen.columns):
                 worksheet.column_dimensions[chr(65 + idx)].width = 20
 
-        # 2. Hojas Individuales por Cliente
         unique_clients = df_all['Cliente'].unique()
         for client_name in unique_clients:
             client_data = df_all[df_all['Cliente'] == client_name]
-            
-            # Limpiar nombre de hoja (max 31 chars, sin caracteres especiales prohibidos)
             sheet_name = str(client_name)[:30].replace(":", "").replace("/", "").replace("?", "").replace("*", "")
             if not sheet_name: sheet_name = "Cliente"
             
-            # --- Tabla 1: Datos Personales (del último registro) ---
             last_record = client_data.iloc[-1]
             personal_info = {
                 'Dato': ['Cliente', 'Ocupación', 'Teléfono', 'Email', 'Edad', 'Sexo'],
@@ -231,20 +222,14 @@ def generate_complex_excel(data):
             }
             df_personal = pd.DataFrame(personal_info)
             
-            # --- Tabla 2: Historial Financiero ---
             financial_cols = ['Periodo', 'Mes', 'Año', 'Ingresos', 'Egresos', 'Balance']
-            # Añadir Ahorro_Proyectado si existe en los datos
             if 'Ahorro_Proyectado' in client_data.columns:
                 financial_cols.append('Ahorro_Proyectado')
-                
-            # Filtramos solo columnas que existan
             valid_cols = [c for c in financial_cols if c in client_data.columns]
             df_financial = client_data[valid_cols].copy()
             
-            # Escribir Datos Personales
             df_personal.to_excel(writer, sheet_name=sheet_name, startrow=1, startcol=1, index=False)
             
-            # Escribir Historial más abajo
             start_row_financial = len(df_personal) + 4
             writer.sheets[sheet_name].cell(row=start_row_financial, column=2).value = "Historial Financiero"
             df_financial.to_excel(writer, sheet_name=sheet_name, startrow=start_row_financial, startcol=1, index=False)
@@ -409,14 +394,6 @@ def create_pro_pdf(report_type, extra_data=None):
 
 # --- Layout Principal ---
 
-# Sidebar para configuración global
-with st.sidebar:
-    st.title("Configuración")
-    # Botón Toggle Dark Mode
-    if st.button("🌓 Cambiar Modo (Claro/Oscuro)"):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
-
 st.title("Consultoría")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["➕ Registros", "📈 Análisis", "📝 Deudas", "🧮 Proyecciones", "🗄️ Base de Datos"])
@@ -445,9 +422,11 @@ with tab1:
 
         ingresos, gastos, balance = get_balance()
         color = "#4F46E5" if balance >= 0 else "#F43F5E"
+        
+        # Usamos una clase personalizada para forzar el color del texto en la tarjeta de balance
         st.markdown(f"""
-        <div style="margin-top:10px; padding:10px; background-color:{'#262730' if st.session_state.dark_mode else 'white'}; border-radius:10px; border:1px solid #e2e8f0; text-align:right;">
-            <span style='color:gray; font-size:0.8em; text-transform:uppercase; font-weight:bold;'>Balance Actual</span><br>
+        <div style="margin-top:10px; padding:10px; background-color:white; border-radius:10px; border:1px solid #e2e8f0; text-align:right;">
+            <span style='color:#64748B; font-size:0.8em; text-transform:uppercase; font-weight:bold;'>Balance Actual</span><br>
             <span style='color:{color}; font-weight:bold; font-size:1.5em;'>{format_money(balance)}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -465,8 +444,7 @@ with tab1:
         with st.form(key="registro_form", clear_on_submit=True):
             fc_tipo, fc_monto = st.columns([1, 1])
             with fc_tipo:
-                # Orden cambiado para que Gasto sea el defecto (index 1 si Gasto es el segundo, o 0 si es primero)
-                # El usuario quiere que se quede en gasto.
+                # Orden cambiado para que Gasto sea el defecto
                 tipos = ["Gasto", "Ingreso"]
                 tipo_sel = st.radio("Tipo", tipos, horizontal=True, label_visibility="collapsed")
             with fc_monto:
@@ -512,15 +490,15 @@ with tab1:
         else:
             for t in reversed(st.session_state.transacciones):
                 color_border = "#10B981" if t['tipo'] == "Ingreso" else "#F43F5E"
-                bg = "#064e3b" if st.session_state.dark_mode and t['tipo'] == "Ingreso" else ("#F0FDF4" if t['tipo'] == "Ingreso" else ("#7f1d1d" if st.session_state.dark_mode else "#FFF1F2"))
-                text_color = "white" if st.session_state.dark_mode else "black"
+                # Forzamos fondos claros ya que estamos en modo claro forzado
+                bg = "#F0FDF4" if t['tipo'] == "Ingreso" else "#FFF1F2"
                 
                 with st.container():
                     col_txt, col_act = st.columns([3, 1])
                     with col_txt:
                         st.markdown(f"""
-                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:8px; border-radius:4px; margin-bottom:4px; color:{text_color};">
-                            <span style="font-weight:600;">{t['concepto']}</span><br>
+                        <div style="background-color:{bg}; border-left:4px solid {color_border}; padding:8px; border-radius:4px; margin-bottom:4px;">
+                            <span style="font-weight:600; color:#333;">{t['concepto']}</span><br>
                             <span style="color:{color_border}; font-weight:bold;">{format_money(t['monto'])}</span>
                         </div>
                         """, unsafe_allow_html=True)
@@ -536,8 +514,9 @@ with tab1:
                          color=['Ingresos', 'Egresos'],
                          color_discrete_map={'Ingresos':'#10B981', 'Egresos':'#F43F5E'},
                          hole=0.6)
-            fig.update_layout(showlegend=False, margin=dict(t=0,b=0,l=0,r=0), height=250, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white' if st.session_state.dark_mode else 'black'))
-            fig.add_annotation(text=format_money(balance), x=0.5, y=0.5, font_size=16, showarrow=False, font_weight="bold", font=dict(color='white' if st.session_state.dark_mode else 'black'))
+            # Forzar colores claros en la gráfica
+            fig.update_layout(showlegend=False, margin=dict(t=0,b=0,l=0,r=0), height=250, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
+            fig.add_annotation(text=format_money(balance), x=0.5, y=0.5, font_size=16, showarrow=False, font_weight="bold", font=dict(color='black'))
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
         else:
             st.caption("Agrega datos para ver la gráfica.")
@@ -546,9 +525,9 @@ with tab1:
 with tab2:
     ingresos, gastos, balance = get_balance()
     col_k1, col_k2, col_k3 = st.columns(3)
-    col_k1.markdown(f"""<div class="metric-card" style="border-top: 5px solid #10B981;"><div style="color:#10B981; font-weight:bold;">INGRESOS</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(ingresos)}</div></div>""", unsafe_allow_html=True)
-    col_k2.markdown(f"""<div class="metric-card" style="border-top: 5px solid #F43F5E;"><div style="color:#F43F5E; font-weight:bold;">EGRESOS</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(gastos)}</div></div>""", unsafe_allow_html=True)
-    col_k3.markdown(f"""<div class="metric-card" style="border-top: 5px solid #6366F1;"><div style="color:#6366F1; font-weight:bold;">BALANCE</div><div style="font-size:1.5rem; font-weight:bold;">{format_money(balance)}</div></div>""", unsafe_allow_html=True)
+    col_k1.markdown(f"""<div class="metric-card" style="border-top: 5px solid #10B981;"><div style="color:#10B981; font-weight:bold;">INGRESOS</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(ingresos)}</div></div>""", unsafe_allow_html=True)
+    col_k2.markdown(f"""<div class="metric-card" style="border-top: 5px solid #F43F5E;"><div style="color:#F43F5E; font-weight:bold;">EGRESOS</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(gastos)}</div></div>""", unsafe_allow_html=True)
+    col_k3.markdown(f"""<div class="metric-card" style="border-top: 5px solid #6366F1;"><div style="color:#6366F1; font-weight:bold;">BALANCE</div><div style="font-size:1.5rem; font-weight:bold; color:#333;">{format_money(balance)}</div></div>""", unsafe_allow_html=True)
     
     st.write("")
     if st.session_state.transacciones:
@@ -556,7 +535,7 @@ with tab2:
         with c_chart:
             st.subheader("Visualización")
             fig_analisis = px.pie(names=['Ingresos', 'Egresos'], values=[ingresos, gastos], color=['Ingresos', 'Egresos'], color_discrete_map={'Ingresos':'#10B981', 'Egresos':'#F43F5E'}, hole=0.5)
-            fig_analisis.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white' if st.session_state.dark_mode else 'black'))
+            fig_analisis.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
             st.plotly_chart(fig_analisis, use_container_width=True)
         with c_details:
             st.subheader("Detalles")
@@ -588,7 +567,7 @@ with tab3:
     if st.session_state.deudas:
         st.write("")
         for d in st.session_state.deudas:
-            st.markdown(f"""<div style="background:{'#262730' if st.session_state.dark_mode else 'white'}; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:bold;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div style="background:white; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:bold; color:#333;">{d['acreedor']}</div><div style="font-size:0.8rem; color:#f43f5e;">Tasa: {d['tasa']}%</div></div><div style="font-weight:bold; color:#f43f5e;">{format_money(d['monto'])}</div></div>""", unsafe_allow_html=True)
             if st.button("Eliminar", key=f"dd_{d['id']}"):
                 st.session_state.deudas = [x for x in st.session_state.deudas if x['id'] != d['id']]
                 st.rerun()
@@ -615,7 +594,7 @@ with tab4:
             data_p = [{"Mes": m, "Total": ahorro_val * m} for m in range(1, meses_input + 1)]
             df_p = pd.DataFrame(data_p)
             fig_p = px.area(df_p, x="Mes", y="Total", title="Crecimiento del Capital")
-            fig_p.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white' if st.session_state.dark_mode else 'black'))
+            fig_p.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='black'))
             st.plotly_chart(fig_p, use_container_width=True)
 
 # --- TAB 5: BASE DE DATOS ---
@@ -753,7 +732,7 @@ with tab5:
                 for idx, row in registros_cliente.iterrows():
                     col_info, col_dl = st.columns([4, 1])
                     with col_info:
-                        st.markdown(f"""<div style="background-color:{'#262730' if st.session_state.dark_mode else 'white'}; padding:10px; border-radius:5px; border:1px solid #eee;"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background-color:white; padding:10px; border-radius:5px; border:1px solid #eee;"><strong>{row['Periodo']}</strong> — <span style="color:#10B981">Ing: {format_money(row['Ingresos'])}</span> | <span style="color:#F43F5E">Gas: {format_money(row['Egresos'])}</span></div>""", unsafe_allow_html=True)
                     with col_dl:
                         st.download_button("📄 PDF", row['PDF_Bytes'], f"Reporte_{row['Cliente']}_{row['Periodo']}.pdf", "application/pdf", key=f"btn_dl_{row['id']}")
                     st.write("")
