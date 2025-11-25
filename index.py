@@ -209,7 +209,7 @@ st.markdown(f"""
         color: {color_ingreso} !important; 
         box-shadow: 0 6px 20px rgba(0,122,255, 0.25);
     }}
-
+    
     @media (min-width: 1024px) {{
         button[data-baseweb="tab"] {{
             font-size: 18px !important;
@@ -218,68 +218,74 @@ st.markdown(f"""
         }}
     }}
     
-    /* --- BOTONES DE SELECCIÓN (RADIO) CORREGIDOS Y VISIBLES --- */
-    /* Contenedor general */
+    /* --- CORRECCIÓN DEFINITIVA DE BOTONES DE SELECCIÓN (RADIO) --- */
+    
+    /* 1. Contenedor del grupo */
     div[role="radiogroup"] {{
         background: transparent !important;
-        box-shadow: none !important;
-        gap: 15px !important;
-        display: flex !important;
         border: none !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 15px !important;
     }}
-    
-    /* Estilo base de cada opción (Ingreso/Gasto) */
+
+    /* 2. Estilo de cada botón (Label) */
     div[role="radiogroup"] label {{
-        background-color: white !important;
+        background-color: #FFFFFF !important;
         border: 1px solid #E5E5EA !important;
-        border-radius: 16px !important;
-        padding: 15px !important;
+        border-radius: 20px !important;
+        padding: 10px 25px !important;
         text-align: center !important;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        cursor: pointer !important;
         transition: all 0.2s ease !important;
-        flex: 1; /* Ocupar espacio igual */
-        margin: 0 !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 120px !important; /* Ancho mínimo para que quepa el texto */
     }}
-    
-    /* Asegurar que el texto se vea (Color Negro por defecto) */
+
+    /* 3. Ocultar el "circulito" original de forma segura (width 0 en vez de display:none) */
+    div[role="radiogroup"] label > div:first-child {{
+        width: 0px !important;
+        height: 0px !important;
+        opacity: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }}
+
+    /* 4. Asegurar que el TEXTO sea visible y de color NEGRO por defecto */
     div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {{
         color: #1D1D1F !important;
         font-weight: 600 !important;
         font-size: 16px !important;
         margin: 0 !important;
-    }}
-    
-    /* Ocultar el círculo por defecto de Streamlit */
-    div[role="radiogroup"] label div:first-child {{
-        display: none !important;
+        display: block !important; /* Forzar display */
     }}
 
-    /* --- ESTADOS SELECCIONADOS (Con Texto Blanco) --- */
-    
-    /* Cuando INGRESO (primer hijo) está seleccionado */
+    /* --- ESTADOS SELECCIONADOS --- */
+
+    /* INGRESO (Primer botón): Seleccionado */
     div[role="radiogroup"] label:first-child:has(input:checked) {{
         background: linear-gradient(135deg, #007AFF 0%, #0051A8 100%) !important;
         border: none !important;
-        box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4) !important;
-        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4) !important;
+        transform: scale(1.02);
     }}
-    /* Texto blanco para Ingreso seleccionado */
+    /* Texto Blanco al seleccionar Ingreso */
     div[role="radiogroup"] label:first-child:has(input:checked) div[data-testid="stMarkdownContainer"] p {{
         color: white !important;
     }}
 
-    /* Cuando GASTO (segundo hijo) está seleccionado */
+    /* GASTO (Segundo botón): Seleccionado */
     div[role="radiogroup"] label:nth-child(2):has(input:checked) {{
         background: linear-gradient(135deg, #5AC8FA 0%, #2D9CDB 100%) !important;
         border: none !important;
-        box-shadow: 0 8px 20px rgba(90, 200, 250, 0.4) !important;
-        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(90, 200, 250, 0.4) !important;
+        transform: scale(1.02);
     }}
-    /* Texto blanco para Gasto seleccionado */
+    /* Texto Blanco al seleccionar Gasto */
     div[role="radiogroup"] label:nth-child(2):has(input:checked) div[data-testid="stMarkdownContainer"] p {{
         color: white !important;
     }}
